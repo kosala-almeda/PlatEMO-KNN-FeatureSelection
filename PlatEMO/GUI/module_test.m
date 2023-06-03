@@ -190,6 +190,7 @@ classdef module_test < handle
                     end
                 catch err
                     uialert(obj.GUI.app.figure,err.message,'Invalid parameter settings');
+                    display(err.getReport,'Error');
                     return;
                 end
                 % Update the data

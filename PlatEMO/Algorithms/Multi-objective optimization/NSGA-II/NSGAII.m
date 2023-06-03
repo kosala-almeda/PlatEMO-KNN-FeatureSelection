@@ -1,7 +1,7 @@
 classdef NSGAII < ALGORITHM
 % <multi> <real/integer/label/binary/permutation> <constrained/none>
 % Nondominated sorting genetic algorithm II
-
+% unique --- 0 --- Extremely diversity. Preserve only unique solutions (0-disabled, 1-parents, 2-offspring, 3-both)
 %------------------------------- Reference --------------------------------
 % K. Deb, A. Pratap, S. Agarwal, and T. Meyarivan, A fast and elitist
 % multiobjective genetic algorithm: NSGA-II, IEEE Transactions on
@@ -26,9 +26,33 @@ classdef NSGAII < ALGORITHM
 
             %% Optimization
             while Algorithm.NotTerminated(Population)
+                % GA operations (crossover and mutation)
                 MatingPool = TournamentSelection(2,Problem.N,FrontNo,-CrowdDis);
                 Offspring  = OperatorGA(Problem,Population(MatingPool), {0.9, 20, 0.01, 20});
-                [Population,FrontNo,CrowdDis] = EnvironmentalSelection([Population,Offspring],Problem.N);
+
+                % Remove duplicate solutions for extreme diversity
+                % Prioritizes uniqueness over dominance
+                uniquePopulation = [Population, Offspring];
+                if Algorithm.ParameterSet(1) == 1 % Parent unique selection
+                    [~,uniqueIndex] = unique(Population.decs,'rows');
+                    uniquePopulation = [Population(uniqueIndex), Offspring];
+                elseif Algorithm.ParameterSet(1) == 2 % Offspring unique selection
+                    [~,uniqueIndex] = unique(Offspring.decs,'rows');
+                    uniquePopulation = [Population, Offspring(uniqueIndex)];
+                elseif Algorithm.ParameterSet(1) == 3 % Both unique selection
+                    [~,uniqueIndex] = unique(uniquePopulation.decs,'rows');
+                    uniquePopulation = uniquePopulation(uniqueIndex);
+                    % Make sure the population size is maintained
+                    if length(uniquePopulation) < Problem.N
+                        % add random from remaining population
+                        remainingIndexes = setdiff(1:length(Population), uniqueIndex);
+                        randomIndexes = randperm(length(remainingIndexes), Problem.N - length(uniquePopulation));
+                        uniquePopulation = [uniquePopulation, Population(remainingIndexes(randomIndexes))]; %#ok<AGROW>
+                    end
+                end
+
+                % Non-dominated sorting
+                [Population,FrontNo,CrowdDis] = EnvironmentalSelection(uniquePopulation,Problem.N);
             end
         end
     end
