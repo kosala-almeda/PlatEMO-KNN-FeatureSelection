@@ -66,7 +66,7 @@ classdef FSel < PROBLEM
             end
 
             % reduce data set to 1000 rows 
-            if size(fullDataSet, 1) > 100
+            if size(fullDataSet, 1) > 1000
                 selectedDataSet = fullDataSet(randperm(size(fullDataSet, 1), 1000), :);
             else
                 selectedDataSet = fullDataSet;
