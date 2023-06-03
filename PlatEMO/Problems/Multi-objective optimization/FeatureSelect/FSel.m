@@ -21,11 +21,11 @@ classdef FSel < PROBLEM
 
 % The datasets are taken from the penfwang repository in
 %  https://github.com/penfwang/Inf_Sci_MODE
-% No.   Name                              Samples Features Classes
-% 1     Hillvally                          1212     100       2
-% 2     Musk1                              2031     166       2
-% 3     Madelon                            2600     500       2
-% 4     Movement                            360      90      15
+% No.   Name                              Samples Features Classes  Type
+% 1     Hillvally                          1212     100       2     Real
+% 2     Musk1                              2031     166       2     Integer
+% 3     Madelon                            2600     500       2     Real
+% 4     Movement                            360      90      15     Real
 
 
     properties(Access = private)
@@ -44,25 +44,24 @@ classdef FSel < PROBLEM
             dataSetNo = obj.ParameterSet(1);
             switch dataSetNo
                 case 1
-                    disp('Hill_Valley');
+                    disp('Hill_Valley Data set: Features: 100, Classes: 2');
                     Data1 = importdata('Hill_Valley_without_noise_Training.data').data;
                     Data2 = importdata('Hill_Valley_without_noise_Testing.data').data;
                     fullDataSet = vertcat(Data1, Data2);
 
                 case 2
-                    disp('Musk1');
+                    disp('Musk1 Data set: Features: 166, Classes: 2');
                     file = importdata('musk.csv');
                     fullDataSet = file.data;
 
                 case 3
-                    disp('Madelon');
+                    disp('Madelon Data set: Features: 500, Classes: 2');
                     file = importdata('madelon.csv');
                     fullDataSet = file.data;
 
                 case 4
-                    disp('Movement_libras');
+                    disp('Movement_libras Data set: Features: 90, Classes: 15');
                     fullDataSet = importdata('movement_libras.data');
-
             end
 
             % reduce data set to 1000 rows 
@@ -93,20 +92,17 @@ classdef FSel < PROBLEM
 
         % Segmantation (train, validation, test)
         function [train, valid, test] = segmentData(obj,dataSet)
-
             numRows = size(dataSet, 1);  
-            
-            indicesTrain = randperm(numRows, round(numRows * 0.7));
+            % Training data test 50% 
+            indicesTrain = randperm(numRows, round(numRows * 0.50));
             train = dataSet(indicesTrain, :);  
-            
+            % Validation data test 20% 
             remainingIndices = setdiff(1:numRows, indicesTrain);  
             remainingData = dataSet(remainingIndices, :); 
-            
-            indicesValid = randperm(size(remainingData, 1), round(numRows * 0.15));  
+            indicesValid = randperm(size(remainingData, 1), round(numRows * 0.20));  
             valid = remainingData(indicesValid, :);
-            
+            % Test data test 30% 
             test = setdiff(remainingData, valid, 'rows'); 
-
         end
 
         % Normalization (min-max normalization)
@@ -117,6 +113,7 @@ classdef FSel < PROBLEM
             input = Data(:,1:end-1);
             output = Data(:,end);
         end
+
         %% Calculate objective values
         function PopObj = CalObj(obj,PopDec)
             PopDec = logical(PopDec);
