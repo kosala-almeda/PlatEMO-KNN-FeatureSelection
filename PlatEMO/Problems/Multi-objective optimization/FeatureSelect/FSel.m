@@ -1,7 +1,7 @@
 classdef FSel < PROBLEM
 % <multi> <binary> <large/none> <expensive/none> <sparse/none>
 % The feature selection problem for KNN classification
-% dataSetNo --- 1 --- Data set number (1-Hillvally, 2-musk, 3-Madelon)
+% dataSetNo --- 1 --- Data set number (1-Hillvally, 2-musk, 3-Madelon, 4-movement)
 
 %------------------------------- Reference --------------------------------
 % Y. Tian, X. Zhang, C. Wang, and Y. Jin, An evolutionary algorithm for
@@ -25,6 +25,7 @@ classdef FSel < PROBLEM
 % 1     Hillvally                          1212     100       2
 % 2     Musk1                              2031     166       2
 % 3     Madelon                            2600     500       2
+% 4     Movement                            360      90      15
 
 
     properties(Access = private)
@@ -57,6 +58,10 @@ classdef FSel < PROBLEM
                     disp('Madelon');
                     file = importdata('madelon.csv');
                     fullDataSet = file.data;
+
+                case 4
+                    disp('Movement_libras');
+                    fullDataSet = importdata('movement_libras.data');
 
             end
 
