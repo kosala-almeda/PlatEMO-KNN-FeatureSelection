@@ -44,6 +44,8 @@ classdef Sparse_FS < PROBLEM
             CallStack = dbstack('-completenames');
             load(fullfile(fileparts(CallStack(1).file),'Dataset_FS.mat'),'Dataset');
             Data = Dataset.(str{dataNo});
+            % Shuffle the dataset
+            Data = Data(randperm(size(Data,1)),:);
             % Normalization (min-max normalization)
             Fmin = min(Data(:,1:end-1),[],1);
             Fmax = max(Data(:,1:end-1),[],1);

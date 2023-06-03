@@ -14,6 +14,9 @@ classdef NSGAII < ALGORITHM
 % for evolutionary multi-objective optimization [educational forum], IEEE
 % Computational Intelligence Magazine, 2017, 12(4): 73-87".
 %--------------------------------------------------------------------------
+% UPDATED BY 
+% P. D. K. M. Almeda and C. L. Hewa Palihakkarage 
+% in 2023 for CPSC5207 Laurentian University
 
     methods
         function main(Algorithm,Problem)
