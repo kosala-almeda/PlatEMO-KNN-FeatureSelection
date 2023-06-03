@@ -55,7 +55,7 @@ function currentAxes = Draw(Data,varargin)
             if islogical(Data)
                 varargin = {'EdgeColor','none'};
             elseif size(Data,2) == 2
-                varargin = {'o','MarkerSize',6,'Marker','o','Markerfacecolor',[.7 .7 .7],'Markeredgecolor',[.4 .4 .4]};
+                varargin = {'o','MarkerSize',6,'Marker','o','Markerfacecolor',[1 0 1],'Markeredgecolor',[.4 .4 .4]};
             elseif size(Data,2) == 3
                 varargin = {'o','MarkerSize',8,'Marker','o','Markerfacecolor',[.7 .7 .7],'Markeredgecolor',[.4 .4 .4]};
             elseif size(Data,2) > 3
