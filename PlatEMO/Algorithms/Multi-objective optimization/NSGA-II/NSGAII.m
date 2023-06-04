@@ -2,6 +2,7 @@ classdef NSGAII < ALGORITHM
 % <multi> <real/integer/label/binary/permutation> <constrained/none>
 % Nondominated sorting genetic algorithm II
 % unique --- 0 --- Extremely diversity. Preserve only unique solutions (0-disabled, 1-parents, 2-offspring, 3-both)
+
 %------------------------------- Reference --------------------------------
 % K. Deb, A. Pratap, S. Agarwal, and T. Meyarivan, A fast and elitist
 % multiobjective genetic algorithm: NSGA-II, IEEE Transactions on
@@ -25,7 +26,7 @@ classdef NSGAII < ALGORITHM
             [~,FrontNo,CrowdDis] = EnvironmentalSelection(Population,Problem.N);
 
             %% Optimization
-            while Algorithm.NotTerminated(Population)
+            while Algorithm.IsNotTerminated(Population)
                 % GA operations (crossover and mutation)
                 MatingPool = TournamentSelection(2,Problem.N,FrontNo,-CrowdDis);
                 Offspring  = OperatorGA(Problem,Population(MatingPool), {0.9, 20, 0.01, 20});
@@ -53,6 +54,20 @@ classdef NSGAII < ALGORITHM
 
                 % Non-dominated sorting
                 [Population,FrontNo,CrowdDis] = EnvironmentalSelection(uniquePopulation,Problem.N);
+            end
+        end
+
+        %% Non throwing termination criteria
+        function bool = IsNotTerminated(Algorithm,Population)
+            try
+                bool = Algorithm.NotTerminated(Population);
+            catch err
+                % check if error is termination assertion error
+                if strcmp(err.identifier, 'PlatEMO:Termination')
+                    bool = false;
+                else
+                    rethrow(err);
+                end
             end
         end
     end
