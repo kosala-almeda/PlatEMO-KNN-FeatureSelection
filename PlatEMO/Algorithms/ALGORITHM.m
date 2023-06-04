@@ -163,6 +163,9 @@ function DefaultOutput(Algorithm,Problem)
                 top = uimenu(gcf,'Label','Data source');
                 g   = uimenu(top,'Label','Population (obj.)','CallBack',{@(h,~,Pro,P)eval('Draw(gca);Pro.DrawObj(P);cb_menu(h);'),Problem,Population});
                 uimenu(top,'Label','Population (dec.)','CallBack',{@(h,~,Pro,P)eval('Draw(gca);Pro.DrawDec(P);cb_menu(h);'),Problem,Population});
+                if ismethod(Problem, 'DrawTest')
+                    uimenu(top,'Label','Population (test.)','CallBack',{@(h,~,Pro,P)eval('Draw(gca);Pro.DrawTest(P);cb_menu(h);'),Problem,Population});
+                end
                 uimenu(top,'Label','True Pareto front','CallBack',{@(h,~,P)eval('Draw(gca);Draw(P,{''\it f\rm_1'',''\it f\rm_2'',''\it f\rm_3''});cb_menu(h);'),Problem.optimum});
                 cellfun(@(s)uimenu(top,'Label',s,'CallBack',{@(h,~,A)eval('Draw(gca);Draw(A.CalMetric(h.Label),''-k.'',''LineWidth'',1.5,''MarkerSize'',10,{''Number of function evaluations'',strrep(h.Label,''_'','' ''),[]});cb_menu(h);'),Algorithm}),{'IGD','HV','GD','Feasible_rate'});
                 set(top.Children(4),'Separator','on');

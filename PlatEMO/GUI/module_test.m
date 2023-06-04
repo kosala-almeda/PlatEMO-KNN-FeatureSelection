@@ -122,7 +122,7 @@ classdef module_test < handle
             % Update the lists of metrics
             show   = cellfun(@(s)func(s(2:end,1:end-2)),obj.GUI.metList(:,1));
             if obj.app.stateA(1).Value == 0 % Multi-objective optimization
-                obj.app.dropC(1).Items = ['Population (objectives)';'Population (variables)';'True Pareto front';obj.GUI.metList(show,2)];
+                obj.app.dropC(1).Items = ['Population (objectives)';'Population (variables)';'Population (test obj.)';'True Pareto front';obj.GUI.metList(show,2)];
                 obj.app.dropD(2).Items = ['runtime';obj.GUI.metList(show,2)];
                 obj.cb_dropdown2();
             else                            % Single-objective optimization
@@ -327,6 +327,10 @@ classdef module_test < handle
                             PRO.DrawObj(ALG.result{index,2});
                         case 'Population (variables)'
                             PRO.DrawDec(ALG.result{index,2});
+                        case 'Population (test obj.)'
+                            if ismethod(PRO,'DrawTest')
+                                PRO.DrawTest(ALG.result{index,2});
+                            end
                         case 'True Pareto front'
                             Draw(PRO.optimum,{'\it f\rm_1','\it f\rm_2','\it f\rm_3'});
                         otherwise
