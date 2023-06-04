@@ -1,4 +1,4 @@
-classdef FSel < PROBLEM
+classdef AssignmentFS < PROBLEM
 % <multi> <binary> <large/none> <expensive/none> <sparse/none>
 % The feature selection problem for KNN classification
 % dataSetNo --- 1 --- Data set number (1-Hillvally, 2-musk, 3-Madelon, 4-movement)
