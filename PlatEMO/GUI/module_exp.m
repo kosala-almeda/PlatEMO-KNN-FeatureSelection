@@ -537,7 +537,7 @@ classdef module_exp < handle
             plot(PopObj(:,1)*obj.data.PRO.D,PopObj(:,2)*100,'ro', 'MarkerSize', 4);
             xlabel('Number of Features');
             ylabel('Classification Error %');
-            xlim([max(PopObj(:,1))*obj.data.PRO.D-1, max(PopObj(:,1))*obj.data.PRO.D+1]);
+            xlim([min(PopObj(:,1))*obj.data.PRO.D-1, max(PopObj(:,1))*obj.data.PRO.D+1]);
             legend('Training/Validation','Testing');
             hold off;
             filename = fullfile(folder,sprintf('%s_%s_M%d_D%d_%d.png',class(obj.data.ALG(a)),class(obj.data.PRO(p)),obj.data.PRO(p).M,obj.data.PRO(p).D,r));

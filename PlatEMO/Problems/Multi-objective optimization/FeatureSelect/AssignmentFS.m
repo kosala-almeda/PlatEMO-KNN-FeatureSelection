@@ -1,7 +1,7 @@
 classdef AssignmentFS < PROBLEM
 % <multi> <binary> <large/none> <expensive/none> <sparse/none>
 % The feature selection problem for KNN classification
-% dataSetNo --- 1 --- Data set number (1-Hillvally, 2-musk, 3-Madelon, 4-movement)
+% dataSetNo --- 1 --- Data set number (1-Hillvally, 2-musk, 3-Madelon, 4-Movement)
 
 %------------------------------- Reference --------------------------------
 % Y. Tian, X. Zhang, C. Wang, and Y. Jin, An evolutionary algorithm for
@@ -154,7 +154,6 @@ classdef AssignmentFS < PROBLEM
         end
         %% Calculate the error for test set
         function PostOptimization(obj,Population)
-            disp('PostOptimization')
             PopDec = logical(Population.decs);
             for i = 1 : size(PopDec,1)
                 % Rank the training samples according to their distances to the current solution
