@@ -525,6 +525,23 @@ classdef module_exp < handle
             [~,~]    = mkdir(folder);
             filename = fullfile(folder,sprintf('%s_%s_M%d_D%d_%d.mat',class(obj.data.ALG(a)),class(obj.data.PRO(p)),obj.data.PRO(p).M,obj.data.PRO(p).D,r));
             save(filename,'result','metric');
+            obj.GraphSave(folder,p,a,r,result);
+        end
+        %% Save the final graphs
+        function GraphSave(obj,folder,p,a,r,result)
+            graph = figure('Visible','off');
+            hold on;
+            PopObj = result{:,2}.objs;
+            plot(PopObj(:,1)*obj.data.PRO.D,PopObj(:,2)*100,'bo', 'MarkerSize', 4);
+            PopObj = result{:,2}.adds;
+            plot(PopObj(:,1)*obj.data.PRO.D,PopObj(:,2)*100,'ro', 'MarkerSize', 4);
+            xlabel('Number of Features');
+            ylabel('Classification Error %');
+            xlim([max(PopObj(:,1))*obj.data.PRO.D-1, max(PopObj(:,1))*obj.data.PRO.D+1]);
+            legend('Training/Validation','Testing');
+            hold off;
+            filename = fullfile(folder,sprintf('%s_%s_M%d_D%d_%d.png',class(obj.data.ALG(a)),class(obj.data.PRO(p)),obj.data.PRO(p).M,obj.data.PRO(p).D,r));
+            saveas(graph,filename);
         end
         %% Get the metric value 
         function score = GetMetricValue(obj,p,a,metName,showAll)

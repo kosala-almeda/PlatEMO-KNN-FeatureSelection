@@ -55,6 +55,12 @@ classdef NSGAII < ALGORITHM
                 % Non-dominated sorting
                 [Population,FrontNo,CrowdDis] = EnvironmentalSelection(uniquePopulation,Problem.N);
             end
+
+            % Check if post optimization action function is defined
+            if ismethod(Problem, 'PostOptimization')
+                Problem.PostOptimization(Population);
+                Algorithm.NotTerminated(Population)
+            end
         end
 
         %% Non throwing termination criteria
