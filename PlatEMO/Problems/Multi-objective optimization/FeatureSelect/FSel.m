@@ -140,5 +140,37 @@ classdef FSel < PROBLEM
             PopObj(:,2) = PopObj(:,2)*100;
             Draw(PopObj,{'No. of selected features','Validation error %',[]});
         end
+        %% Display a population with post optimization test results
+        function DrawTest(obj,Population)
+            try
+                PopObj = Population.adds;
+            catch
+                obj.PostOptimization(Population);
+                PopObj = Population.adds;
+            end
+            PopObj(:,1) = PopObj(:,1)*obj.D;
+            PopObj(:,2) = PopObj(:,2)*100;
+            Draw(PopObj,{'No. of selected features','Test error %',[]});
+        end
+        %% Calculate the error for test set
+        function PostOptimization(obj,Population)
+            disp('PostOptimization')
+            PopDec = logical(Population.decs);
+            for i = 1 : size(PopDec,1)
+                % Rank the training samples according to their distances to the current solution
+                [~,Rank] = sort(pdist2(obj.TestIn(:,PopDec(i,:)),obj.TrainIn(:,PopDec(i,:))),2);
+                % Predict the labels by the majority voting of K(=5) Nearest Neighbors
+                %   mode is not used as following strategy is better at tie breaking
+                %   it gives priority close neighbors in case of a tie
+                [~,Out]  = max(hist(obj.TrainOut(Rank(:,1:5))',obj.Category),[],1); 
+                Out      = obj.Category(Out);
+                % Using mean over sum to normalize the objective value between 0 and 1
+            	PopTest(1, 1) = mean(PopDec(i,:));
+                % Validation error is the ratio of misclassified samples
+                PopTest(1, 2) = mean(Out~=obj.TestOut);
+                % Store in the population
+                Population(i).add = PopTest;
+            end
+        end
     end
 end
