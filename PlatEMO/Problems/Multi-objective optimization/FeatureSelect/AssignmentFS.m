@@ -135,10 +135,15 @@ classdef AssignmentFS < PROBLEM
         %% Display a population in the objective space
         function DrawObj(obj,Population)
             % Rescale the objective values
-            PopObj = Population.objs;
-            PopObj(:,1) = PopObj(:,1)*obj.D;
-            PopObj(:,2) = PopObj(:,2)*100;
-            Draw(PopObj,{'No. of selected features','Validation error %',[]});
+            PopObj = Population.objs.*[obj.D,100];
+            ParetoObj = Population.best.objs.*[obj.D,100];
+            % Get the minumum validation error
+            [~,bi] = min(ParetoObj(:,2));
+            ax = Draw(PopObj,'o','Markeredgecolor',[0.2 0.2 1],{'No. of selected features','Validation error %',[]});
+            plot(ax,ParetoObj(:,1),ParetoObj(:,2),'o','Markerfacecolor',[0.5 0.6 1],'Markeredgecolor',[0 0 0.2]);
+            plot(ax,ParetoObj(bi,1),ParetoObj(bi,2),'k.');
+            ax.XLim = [0,max(PopObj(:,1))+1];
+            ax.YLim = [0,max(PopObj(:,2))+1];
         end
         %% Display a population with post optimization test results
         function DrawTest(obj,Population)
@@ -148,9 +153,29 @@ classdef AssignmentFS < PROBLEM
                 obj.PostOptimization(Population);
                 PopObj = Population.adds;
             end
-            PopObj(:,1) = PopObj(:,1)*obj.D;
-            PopObj(:,2) = PopObj(:,2)*100;
-            Draw(PopObj,{'No. of selected features','Test error %',[]});
+            pi = NDSort(PopObj,1) == 1;
+            ParetoObj = PopObj(pi,:).*[obj.D,100];
+            [~,bi] = min(ParetoObj(:,2));
+            PopObj = PopObj.*[obj.D,100];
+            ax = Draw(PopObj,'o','Markeredgecolor',[1 0.2 0.2],{'No. of selected features','Validation error %',[]});
+            plot(ax,ParetoObj(:,1),ParetoObj(:,2),'o','Markerfacecolor',[1 0.5 0.5],'Markeredgecolor',[0.2 0 0]);
+            plot(ax,ParetoObj(bi,1),ParetoObj(bi,2),'k.');
+            ax.XLim = [0,max(PopObj(:,1))+1];
+            ax.YLim = [0,max(PopObj(:,2))+1];
+        end
+        %% Display a population in the decision space
+        function DrawDec(obj,Population)
+            ax = Draw(logical(Population.decs));
+            PopObjs = Population.objs
+            [~,bi] = min(PopObjs(:,2));
+            pi = NDSort(PopObjs,1) == 1;
+
+            PopDecs = Population.decs;
+            C = zeros(size(PopDecs)) + 0.7;
+            C(pi,:) = zeros+0.4;
+            C(bi,:) = zeros;
+            C(~PopDecs) = 1;
+            surf(ax,ones(size(PopDecs')),repmat(C',1,1,3),'EdgeColor','none');
         end
         %% Calculate the error for test set
         function PostOptimization(obj,Population)
