@@ -68,7 +68,7 @@ classdef module_test < handle
             obj.app.grid(3)  = GUI.APP(2,[5 7],uigridlayout(obj.app.maingrid,'RowHeight',{'1x',40,30},'ColumnWidth',{20,150,'1x','1x',120,30,20},'Padding',[15 10 15 0],'RowSpacing',5,'BackgroundColor','w'));
             obj.app.axes     = GUI.APP(1,[2 6],uiaxes(obj.app.grid(3),'BackgroundColor','w','Box','on'));
             obj.app.waittip  = GUI.APP(1,[2 6],uilabel(obj.app.grid(3),'HorizontalAlignment','center','Text','                 Please wait ... ...','Visible','off'));
-            tempTb = axtoolbar(obj.app.axes(1),{'rotate','pan','zoomin','zoomout'});
+            tempTb = axtoolbar(obj.app.axes(1),'default');
             obj.app.toolC(1)   = axtoolbarbtn(tempTb,'push','Icon',obj.GUI.icon.gif,'Tooltip','Save the evolutionary process to gif','ButtonPushedFcn',@obj.cb_toolbutton1);
             obj.app.toolC(2)   = axtoolbarbtn(tempTb,'push','Icon',obj.GUI.icon.newfigure,'Tooltip','Open in new figure and save to workspace','ButtonPushedFcn',@obj.cb_toolbutton2);
             obj.app.slider     = GUI.APP(2,[1 7],uislider(obj.app.grid(3),'Limits',[0 1],'MajorTicks',0:0.25:1,'MajorTickLabels',{'0%','25%','50%','75%','100%'},'MinorTicks',0:0.01:1,'ValueChangedFcn',@obj.cb_slider));

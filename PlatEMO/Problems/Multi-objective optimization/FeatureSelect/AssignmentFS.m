@@ -144,6 +144,7 @@ classdef AssignmentFS < PROBLEM
             plot(ax,ParetoObj(bi,1),ParetoObj(bi,2),'k.');
             ax.XLim = [0,max(PopObj(:,1))+1];
             ax.YLim = [0,max(PopObj(:,2))+1];
+            legend(ax,'Solutions','Pareto front', 'MCE', 'Location', 'SouthWest');
         end
         %% Display a population with post optimization test results
         function DrawTest(obj,Population)
@@ -153,20 +154,24 @@ classdef AssignmentFS < PROBLEM
                 obj.PostOptimization(Population);
                 PopObj = Population.adds;
             end
+            OrigParetoObj = Population.best.adds;
+            OrigParetoObj = OrigParetoObj.*[obj.D,100];
             pi = NDSort(PopObj,1) == 1;
             ParetoObj = PopObj(pi,:).*[obj.D,100];
             [~,bi] = min(ParetoObj(:,2));
             PopObj = PopObj.*[obj.D,100];
-            ax = Draw(PopObj,'o','Markeredgecolor',[1 0.2 0.2],{'No. of selected features','Validation error %',[]});
+            ax = Draw(PopObj,'o','Markeredgecolor',[1 0.5 0.5],{'No. of selected features','Validation error %',[]});
+            plot(ax,OrigParetoObj(:,1),OrigParetoObj(:,2),'o','Markerfacecolor',[1 0.9 0.9],'Markeredgecolor',[0.8 0 0]);
             plot(ax,ParetoObj(:,1),ParetoObj(:,2),'o','Markerfacecolor',[1 0.5 0.5],'Markeredgecolor',[0.2 0 0]);
             plot(ax,ParetoObj(bi,1),ParetoObj(bi,2),'k.');
             ax.XLim = [0,max(PopObj(:,1))+1];
             ax.YLim = [0,max(PopObj(:,2))+1];
+            legend(ax,'Solutions', 'Original Pareto','Non dominated', 'MCE', 'Location', 'SouthWest');
         end
         %% Display a population in the decision space
         function DrawDec(obj,Population)
             ax = Draw(logical(Population.decs));
-            PopObjs = Population.objs
+            PopObjs = Population.objs;
             [~,bi] = min(PopObjs(:,2));
             pi = NDSort(PopObjs,1) == 1;
 
@@ -176,25 +181,46 @@ classdef AssignmentFS < PROBLEM
             C(bi,:) = zeros;
             C(~PopDecs) = 1;
             surf(ax,ones(size(PopDecs')),repmat(C',1,1,3),'EdgeColor','none');
+            legend(ax,'off');
         end
         %% Calculate the error for test set
         function PostOptimization(obj,Population)
-            PopDec = logical(Population.decs);
-            for i = 1 : size(PopDec,1)
+            mce = [1, 1];
+            mcesolution = [];
+            for i = 1 : length(Population)
+                PopDec = logical(Population(i).dec);
                 % Rank the training samples according to their distances to the current solution
-                [~,Rank] = sort(pdist2(obj.TestIn(:,PopDec(i,:)),obj.TrainIn(:,PopDec(i,:))),2);
+                [~,Rank] = sort(pdist2(obj.TestIn(:,PopDec),obj.TrainIn(:,PopDec)),2);
                 % Predict the labels by the majority voting of K(=5) Nearest Neighbors
                 %   mode is not used as following strategy is better at tie breaking
                 %   it gives priority close neighbors in case of a tie
                 [~,Out]  = max(hist(obj.TrainOut(Rank(:,1:5))',obj.Category),[],1); 
                 Out      = obj.Category(Out);
                 % Using mean over sum to normalize the objective value between 0 and 1
-            	PopTest(1, 1) = mean(PopDec(i,:));
+            	PopTest(1, 1) = mean(PopDec);
                 % Validation error is the ratio of misclassified samples
                 PopTest(1, 2) = mean(Out~=obj.TestOut);
                 % Store in the population
                 Population(i).add = PopTest;
+                % Update the minumum classification error
+                if PopTest(1, 2) < mce(1)
+                    mce(2) = PopTest(1, 2);
+                    mcesolution(2,:) = PopDec;
+                end
+                % Update the minumum classification error for training data
+                if Population(i).obj(1, 2) < mce(2)
+                    mce(1) = PopTest(1, 2);
+                    mcesolution(1,:) = PopDec;
+                end
             end
+            disp('For training (validation) data:');
+            display(['MCE: ',num2str(mce(1)), ' ,   No of Features: ',num2str(sum(mcesolution))]);
+            display(['Feature set: ',num2str(find(mcesolution(1,:)))]);
+            display(['HV: ', num2str(obj.CalMetric('HV',Population))])
+            disp('For test data:');
+            display(['MCE: ',num2str(mce(2)), ' ,   No of Features: ',num2str(sum(mcesolution))]);
+            display(['Feature set: ',num2str(find(mcesolution(2,:)))]);
+            disp('===============================================')
         end
     end
 end
