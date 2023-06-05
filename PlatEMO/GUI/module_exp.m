@@ -532,11 +532,11 @@ classdef module_exp < handle
             graph = figure('Visible','off');
             hold on;
             PopObj = result{:,2}.objs;
-            plot(PopObj(:,1)*obj.data.PRO.D,PopObj(:,2)*100,'bo', 'MarkerSize', 4);
+            plot(PopObj(:,1)*obj.data.PRO.D,PopObj(:,2),'bo', 'MarkerSize', 4);
             PopObj = result{:,2}.adds;
-            plot(PopObj(:,1)*obj.data.PRO.D,PopObj(:,2)*100,'ro', 'MarkerSize', 4);
+            plot(PopObj(:,1)*obj.data.PRO.D,PopObj(:,2),'ro', 'MarkerSize', 4);
             xlabel('Number of Features');
-            ylabel('Classification Error %');
+            ylabel('Classification Error');
             xlim([min(PopObj(:,1))*obj.data.PRO.D-1, max(PopObj(:,1))*obj.data.PRO.D+1]);
             legend('Training/Validation','Testing');
             hold off;

@@ -4,7 +4,7 @@ classdef AssignmentFS < PROBLEM
 % dataSetNo --- 4 --- Data set number (1-WBCD, 2-Sonar, 3-Movement, 4-Hillvally, 5-Musk1, 6-Multiple(pix), 7-Arrhythmia, 8-Madelon)
 % Kf        --- 4 --- Number of folds for KFold cross validation
 % Kn        --- 5 --- Number of nearest neighbors for KNN classification
-% trainSize --- 0.7 --- Portion of data used for training
+% testSize  --- 0.3 --- Portion of data used for final testing
 
 %------------------------------- Reference --------------------------------
 % Y. Tian, X. Zhang, C. Wang, and Y. Jin, An evolutionary algorithm for
@@ -49,7 +49,7 @@ classdef AssignmentFS < PROBLEM
         %% Default settings of the problem
         function Setting(obj)
             % Parameter setting
-            [dataSetNo, obj.Kf, obj.Kn,  trainSize] = obj.ParameterSet(4, 4, 5, 0.7);
+            [dataSetNo, obj.Kf, obj.Kn, testSize] = obj.ParameterSet(4, 4, 5, 0.3);
 
             % Load data
             [inputs,output] = loadDataSet(dataSetNo);
@@ -69,19 +69,22 @@ classdef AssignmentFS < PROBLEM
             obj.Category = unique(output);
 
             % Split data into training and test sets
-            obj.TrainIn     = inputs(1:ceil(end*trainSize),:);
-            obj.TrainOut    = output(1:ceil(end*trainSize),:);
-            obj.TestIn     = inputs(ceil(end*trainSize)+1:end,:);
-            obj.TestOut    = output(ceil(end*trainSize)+1:end,:);
+            obj.TestIn     = inputs(1:ceil(end*testSize),:);
+            obj.TestOut    = output(1:ceil(end*testSize),:);
+            obj.TrainIn     = inputs(ceil(end*testSize)+1:end,:);
+            obj.TrainOut    = output(ceil(end*testSize)+1:end,:);
 
             % Parameter setting
             obj.M        = 2; % Number of objectives (Number of selected features, Validation error)
             obj.D        = size(obj.TrainIn,2); % Number of decision variables (Number of features in the dataset)
             obj.encoding = 4 + zeros(1,obj.D); % Encoding design (4: binary encoding)
 
+            display(['# features: ', num2str(obj.D), '   # classes: ', num2str(length(obj.Category)), ...
+                '   # train: ', num2str(size(obj.TrainIn,1)), '   # test: ', num2str(size(obj.TestIn,1))])
+
             % Classification error using all features
             result = CalObj(obj,ones(1,obj.D));
-            display(['Classification error using all features: ', num2str(result(1))])
+            display(['Classification error using all features: ', num2str(result(2))])
             disp('===============================================')
         end
 
@@ -131,15 +134,15 @@ classdef AssignmentFS < PROBLEM
         %% Display a population in the objective space
         function DrawObj(obj,Population)
             % Rescale the objective values
-            PopObj = Population.objs.*[obj.D,100];
-            ParetoObj = Population.best.objs.*[obj.D,100];
+            PopObj = Population.objs.*[obj.D,1];
+            ParetoObj = Population.best.objs.*[obj.D,1];
             % Get the minumum validation error
             [~,bi] = min(ParetoObj(:,2));
-            ax = Draw(PopObj,'o','Markeredgecolor',[0.2 0.2 1],{'No. of selected features','Validation error %',[]});
+            ax = Draw(PopObj,'o','Markeredgecolor',[0.2 0.2 1],{'No. of selected features','Validation error',[]});
             plot(ax,ParetoObj(:,1),ParetoObj(:,2),'o','Markerfacecolor',[0.5 0.6 1],'Markeredgecolor',[0 0 0.2]);
             plot(ax,ParetoObj(bi,1),ParetoObj(bi,2),'k.');
             ax.XLim = [0,max(PopObj(:,1))+1];
-            ax.YLim = [0,max(PopObj(:,2))+1];
+            ax.YLim = [0,max(PopObj(:,2))+0.01];
             legend(ax,'Other Solutions','Pareto front', 'MCE', 'Location', 'SouthWest');
         end
         %% Display a population with post optimization test results
@@ -151,17 +154,17 @@ classdef AssignmentFS < PROBLEM
                 PopObj = Population.adds;
             end
             OrigParetoObj = Population.best.adds;
-            OrigParetoObj = OrigParetoObj.*[obj.D,100];
+            OrigParetoObj = OrigParetoObj.*[obj.D,1];
             pi = NDSort(PopObj,1) == 1;
-            ParetoObj = PopObj(pi,:).*[obj.D,100];
+            ParetoObj = PopObj(pi,:).*[obj.D,1];
             [~,bi] = min(ParetoObj(:,2));
-            PopObj = PopObj.*[obj.D,100];
-            ax = Draw(PopObj,'o','Markeredgecolor',[1 0.5 0.5],{'No. of selected features','Validation error %',[]});
+            PopObj = PopObj.*[obj.D,1];
+            ax = Draw(PopObj,'o','Markeredgecolor',[1 0.5 0.5],{'No. of selected features','Test error',[]});
             plot(ax,OrigParetoObj(:,1),OrigParetoObj(:,2),'o','Markerfacecolor',[1 0.9 0.9],'Markeredgecolor',[0.8 0 0]);
             plot(ax,ParetoObj(:,1),ParetoObj(:,2),'o','Markerfacecolor',[1 0.5 0.5],'Markeredgecolor',[0.2 0 0]);
             plot(ax,ParetoObj(bi,1),ParetoObj(bi,2),'k.');
             ax.XLim = [0,max(PopObj(:,1))+1];
-            ax.YLim = [0,max(PopObj(:,2))+1];
+            ax.YLim = [0,max(PopObj(:,2))+0.01];
             legend(ax,'Other Solutions', 'Original Pareto','Non dominated', 'MCE', 'Location', 'SouthWest');
         end
         %% Display a population in the decision space
@@ -181,7 +184,7 @@ classdef AssignmentFS < PROBLEM
         end
         %% Calculate the error for test set
         function PostOptimization(obj,Population)
-            mce = [1, 1];
+            mce = ones(2);
             mcesolution = [];
             for i = 1 : length(Population)
                 PopDec = logical(Population(i).dec);
@@ -200,21 +203,23 @@ classdef AssignmentFS < PROBLEM
                 Population(i).add = PopTest;
                 % Update the minumum classification error
                 if PopTest(1, 2) < mce(1)
-                    mce(2) = PopTest(1, 2);
+                    mce(2, 1) = PopTest(1, 2);
+                    mce(2, 2) = Population(i).obj(1, 2);
                     mcesolution(2,:) = PopDec;
                 end
                 % Update the minumum classification error for training data
                 if Population(i).obj(1, 2) < mce(2)
-                    mce(1) = PopTest(1, 2);
+                    mce(1, 1) = Population(i).obj(1, 2);
+                    mce(1, 2) = PopTest(1, 2);
                     mcesolution(1,:) = PopDec;
                 end
             end
-            disp('For training (validation) data:');
-            display(['MCE: ',num2str(mce(1)), ' ,   No of Features: ',num2str(sum(mcesolution(1,:)))]);
+            disp('For training data:');
+            display(['MCE: ',num2str(mce(1)), '  (test:', num2str(mce(1,2)), ') ,   No of Features: ',num2str(sum(mcesolution(1,:)))]);
             display(['Feature set: ',num2str(find(mcesolution(1,:)))]);
             display(['HV: ', num2str(obj.CalMetric('HV',Population))])
             disp('For test data:');
-            display(['MCE: ',num2str(mce(2)), ' ,   No of Features: ',num2str(sum(mcesolution(2,:)))]);
+            display(['MCE: ',num2str(mce(2)), '  (train:', num2str(mce(2,2)), ') ,   No of Features: ',num2str(sum(mcesolution(2,:)))]);
             display(['Feature set: ',num2str(find(mcesolution(2,:)))]);
             disp('===============================================')
         end
@@ -224,6 +229,18 @@ end
 % Get the data set
 function [features, classes] = loadDataSet(dataSetNo)
     switch dataSetNo
+        case 1
+            disp('WBCD Data set: Features: 30, Classes: 2');
+            dataSet = importdata('WBCD.data');
+            features = dataSet.data;
+            classes = cell2mat(dataSet.textdata(:,2))-'A';% char to numeric
+        case 2
+            disp('Sonar Data set: Features: 60, Classes: 2');
+            dataSet=readtable('sonar.data', 'ReadVariableNames', false, 'FileType', 'delimited')
+            dataSet.Var61=cellfun(@(v) v-'A', dataSet.Var61);
+            dataSet=table2array(dataSet);
+            features = dataSet(:, 1:end-1);
+            classes = dataSet(:, end);
         case 3
             disp('Movement_libras Data set: Features: 90, Classes: 15');
             dataSet = importdata('movement_libras.data');
@@ -242,6 +259,23 @@ function [features, classes] = loadDataSet(dataSetNo)
             dataSet = file.data;
             features = dataSet(:, 4:end-1);
             classes = dataSet(:, end);
+        case 6
+            disp('Mfeat-pix Data set: Features: 240, Classes: 10');
+            file = importdata('mfeat-pix');
+            features = file;
+            % No labels available for this data set, its just ordered with 200 samples per class
+            classes = [zeros(200,1); ones(200,1); 2*ones(200,1); 3*ones(200,1); 4*ones(200,1); 5*ones(200,1); ...
+                6*ones(200,1); 7*ones(200,1); 8*ones(200,1); 9*ones(200,1)];
+        case 7
+            disp('Arrhythmia Data set: Features: 279, Classes: 16');
+            dataSet = readtable('arrhythmia.data', 'ReadVariableNames', false, 'FileType', 'delimited');
+            % There are strings in the data set, so we need to convert them to numbers
+            dataSet.Var14=cellfun(@str2double, dataSet.Var14);
+            dataSet=table2array(dataSet);
+            % Replace NaN with 0
+            dataSet(isnan(dataSet))=0;
+            features = dataSet(:, 1:end-1);
+            classes = dataSet(:, end);
         case 8
             disp('Madelon Data set: Features: 500, Classes: 2');
             file = importdata('madelon.csv');
@@ -255,11 +289,9 @@ function [features, classes] = loadDataSet(dataSetNo)
 end
 
 % Normalization (min-max normalization)
-function [input, output] = normalizeData(Data)
+function Data = normalizeData(Data)
     Fmin = min(Data(:,1:end-1),[],1);
     Fmax = max(Data(:,1:end-1),[],1);
     Data(:,1:end-1) = (Data(:,1:end-1)-repmat(Fmin,size(Data,1),1))./repmat(Fmax-Fmin,size(Data,1),1);
-    input = Data(:,1:end-1);
-    output = Data(:,end);
 end
 
