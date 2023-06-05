@@ -59,12 +59,6 @@ classdef AssignmentFS < PROBLEM
             inputs = inputs(randIdx, :);
             output = output(randIdx, :);
 
-            % reduce data set to 1000 rows 
-            if size(inputs, 1) > 1000
-                inputs = inputs(1:1000, :);
-                output = output(1:1000, :);
-            end
-
             inputs = normalizeData(inputs);
             obj.Category = unique(output);
 
@@ -236,7 +230,7 @@ function [features, classes] = loadDataSet(dataSetNo)
             classes = cell2mat(dataSet.textdata(:,2))-'A';% char to numeric
         case 2
             disp('Sonar Data set: Features: 60, Classes: 2');
-            dataSet=readtable('sonar.data', 'ReadVariableNames', false, 'FileType', 'delimited')
+            dataSet=readtable('sonar.data', 'ReadVariableNames', false, 'FileType', 'delimited');
             dataSet.Var61=cellfun(@(v) v-'A', dataSet.Var61);
             dataSet=table2array(dataSet);
             features = dataSet(:, 1:end-1);
@@ -256,7 +250,7 @@ function [features, classes] = loadDataSet(dataSetNo)
         case 5
             disp('Musk1 Data set: Features: 166, Classes: 2');
             file = importdata('musk.csv');
-            dataSet = file.data;
+            dataSet = file.data(1:2031, :);
             features = dataSet(:, 4:end-1);
             classes = dataSet(:, end);
         case 6
