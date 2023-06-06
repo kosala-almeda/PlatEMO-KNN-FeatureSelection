@@ -1,7 +1,7 @@
 classdef AssignmentFS < PROBLEM
 % <multi> <binary> <large/none> <expensive/none> <sparse/none>
 % The feature selection problem for KNN classification
-% dataSetNo --- 4 --- Data set number (1-WBCD, 2-Sonar, 3-Movement, 4-Hillvally, 5-Musk1, 6-Multiple(pix), 7-Arrhythmia, 8-Madelon)
+% dataSetNo --- 2 --- Data set number (1-WBCD, 2-Sonar, 3-Movement, 4-Hillvally, 5-Musk1, 6-Multiple(pix), 7-Arrhythmia, 8-Madelon)
 % Kf        --- 4 --- Number of folds for KFold cross validation
 % Kn        --- 5 --- Number of nearest neighbors for KNN classification
 % testSize  --- 0.3 --- Portion of data used for final testing
@@ -87,7 +87,7 @@ classdef AssignmentFS < PROBLEM
             PopDec = logical(PopDec);
             PopObj = zeros(size(PopDec,1),2);
             for i = 1 : size(PopObj,1)
-
+                valErrors = ones(obj.Kf,1);
                 % KFold cross validation using Training set
                 foldSize = ceil(size(obj.TrainIn,1)/obj.Kf);
                 % split to Kf folds, for each fold, train and test
@@ -109,7 +109,6 @@ classdef AssignmentFS < PROBLEM
                         validIn = obj.TrainIn((j-1)*foldSize+1:j*foldSize, :);
                         validOut = obj.TrainOut((j-1)*foldSize+1:j*foldSize, :);
                     end
-                    
 
                     % Rank the training samples according to their distances to the current solution
                     [~,Rank] = sort(pdist2(validIn(:,PopDec(i,:)),trainIn(:,PopDec(i,:))),2);
@@ -117,11 +116,13 @@ classdef AssignmentFS < PROBLEM
                     %   mode is not used as following gives priority close neighbors in case of a tie
                     [~,Out]  = max(hist(trainOut(Rank(:,1:obj.Kn))',obj.Category),[],1);
                     Out      = obj.Category(Out);
-                    % Using mean over sum to normalize the objective value between 0 and 1
-                    PopObj(i,1) = mean(PopDec(i,:));
                     % Validation error is the ratio of misclassified samples
-                    PopObj(i,2) = mean(Out~=validOut);
+                    valErrors(j) = mean(Out~=validOut);
                 end
+                % Using mean over sum to normalize the objective value between 0 and 1
+                PopObj(i,1) = mean(PopDec(i,:));
+                % Validation error is the ratio of misclassified samples
+                PopObj(i,2) = mean(valErrors);
             end
         end
 
